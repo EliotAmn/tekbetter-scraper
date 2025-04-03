@@ -22,6 +22,7 @@ class TaskType:
     SLUGS = "slugs"
     MODULES = "modules"
     PICTURE = "picture"
+    NETSOUL = "netsoul"
     PROFILE = "profile"
     AUTH = "auth"
     SCRAPING = "scraping"
@@ -98,6 +99,7 @@ class Student:
                 TaskType.PLANNING: None,
                 TaskType.PROJECTS: None,
                 TaskType.PICTURE: None,
+                TaskType.NETSOUL: None,
                 TaskType.SLUGS: {},
             }
 
@@ -105,6 +107,7 @@ class Student:
             known_modules = res_json.get("known_modules", [])
             asked_slugs = res_json.get("asked_slugs", [])
             need_picture = res_json.get("need_picture_login", [])
+            student_login = res_json.get("student_login", None)
 
             start_date = datetime.strptime(res_json.get("fetch_start"), "%Y-%m-%d") if res_json.get("fetch_start") else (datetime.now() - timedelta(days=5 * 365))
             end_date = datetime.strptime(res_json.get("fetch_end"), "%Y-%m-%d") if res_json.get("fetch_end") else (datetime.now() + timedelta(days=365))
@@ -128,8 +131,9 @@ class Student:
 
                 if self.can_scrape(TaskType.PROJECTS):
                     out_data[TaskType.PROJECTS] = self.scrape_intra_projects(start_date, end_date)
-
-                if need_picture:
+                if self.can_scrape(TaskType.NETSOUL):
+                    out_data [TaskType.NETSOUL] = self.scrape_netsoul(student_login)
+                if need_picture is not None:
                     out_data[TaskType.PICTURE] = self.scrape_intra_picture(need_picture)
 
                 if asked_slugs:
@@ -169,7 +173,7 @@ class Student:
     def one_need_scrape(self):
         return any(self.can_scrape(t) for t in [
             TaskType.MOULI, TaskType.MODULES, TaskType.PROFILE,
-            TaskType.PLANNING, TaskType.PROJECTS, TaskType.PICTURE
+            TaskType.PLANNING, TaskType.PROJECTS, TaskType.PICTURE, TaskType.NETSOUL
         ])
 
     def scrape_moulinettes(self, known_tests):
@@ -196,6 +200,33 @@ class Student:
         except Exception:
             self.err_scrap("Failed to fetch project slugs.")
             self.send_task_status({TaskType.SLUGS: TaskStatus.ERROR})
+        return results
+
+    def scrape_netsoul(self, student_login):
+        results = None
+        try:
+            self.log_scrap(f"Fetching Intranet netsoul.")
+            self.send_task_status({TaskType.NETSOUL: TaskStatus.LOADING})
+            r = self.main.intranet.fetch_netsoul(student_login, self)
+            if r is None:
+                self.err_scrap(f"Failed to fetch Intranet netsoul.")
+                self.send_task_status({TaskType.NETSOUL: TaskStatus.ERROR})
+                return
+            results = []
+            for day in r:
+                timestamp = day[0]
+                student_time = day[1]
+                average_time = day[5]
+                results.append({
+                    "timestamp": timestamp,
+                    "student_time": student_time,
+                    "average_time": average_time,
+                })
+        except Exception as e:
+            self.err_scrap(f"Failed to fetch Intranet netsoul: {str(e)}")
+            self.send_task_status({TaskType.NETSOUL: TaskStatus.ERROR})
+        self.send_task_status({TaskType.NETSOUL: TaskStatus.SUCCESS})
+        self.save_scrape(TaskType.NETSOUL)
         return results
 
     def scrape_modules(self, known_modules):
