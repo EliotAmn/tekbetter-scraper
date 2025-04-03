@@ -32,7 +32,7 @@ class IntranetManager:
                     continue
 
                 # If the student is self-registered, save it.
-                if event.get("event_registered") in ["present", "registered", "absent"]
+                if event.get("event_registered") in ["present", "registered", "absent"]:
                     final.append(event)
                     continue
 

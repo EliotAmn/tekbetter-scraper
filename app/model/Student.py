@@ -85,7 +85,7 @@ class Student:
                     raise Exception("Failed to fetch /infos")
                 res_json = res.json()
             except Exception as e:
-                self.err_scrap("Failed to fetch scraping infos from API. Error :" + e)
+                self.err_scrap("Failed to fetch scraping infos from API. Error :" + str(e))
                 self.is_scraping = False
                 return
 
