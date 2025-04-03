@@ -78,6 +78,7 @@ def load_configuration(main):
         "profile": TaskType.PROFILE,
         "planning": TaskType.PLANNING,
         "projects": TaskType.PROJECTS,
+        "netsoul": TaskType.NETSOUL,
     }
 
     if "intervals" in json_data:

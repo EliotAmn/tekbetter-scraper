@@ -24,6 +24,7 @@ class Main:
             TaskType.PROFILE: 60,
             TaskType.PLANNING: 60,
             TaskType.PROJECTS: 60,
+            TaskType.NETSOUL: 600,
         }
 
         if not check_env_variables() or not load_configuration(self):

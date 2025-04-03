@@ -53,6 +53,12 @@ class IntranetManager:
         # Remove duplicates
         return final
 
+    def fetch_netsoul(self, student: Student, student_login: str):
+        res = self.api.api_request(f"user/{student_login}/netsoul/?format=json", student)
+        if not res:
+            return None
+        return res
+
     def fetch_projects(self, student: Student, start_date: datetime, end_date: datetime):
         student.log_scrap(f"[INTRA] Fetching student projects")
         start_str = start_date.strftime("%Y-%m-%d")
