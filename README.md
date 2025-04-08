@@ -44,7 +44,8 @@ Below is a sample configuration file (`config.json`) required for the scraper:
     "projects": 60,
     "planning": 120,
     "modules": 120,
-    "profile": 120
+    "profile": 120,
+    "netsoul": 120
   },
   "students": [
     {

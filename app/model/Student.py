@@ -108,6 +108,10 @@ class Student:
             asked_slugs = res_json.get("asked_slugs", [])
             need_picture = res_json.get("need_picture_login", [])
             student_login = res_json.get("student_login", None)
+            if student_login is None:
+                self.err_scrap(f"Failed to fetch student login.")
+                self.is_scraping = False
+                return
 
             start_date = datetime.strptime(res_json.get("fetch_start"), "%Y-%m-%d") if res_json.get("fetch_start") else (datetime.now() - timedelta(days=5 * 365))
             end_date = datetime.strptime(res_json.get("fetch_end"), "%Y-%m-%d") if res_json.get("fetch_end") else (datetime.now() + timedelta(days=365))
@@ -207,7 +211,7 @@ class Student:
         try:
             self.log_scrap(f"Fetching Intranet netsoul.")
             self.send_task_status({TaskType.NETSOUL: TaskStatus.LOADING})
-            r = self.main.intranet.fetch_netsoul(student_login, self)
+            r = self.main.intranet.fetch_netsoul(self, student_login)
             if r is None:
                 self.err_scrap(f"Failed to fetch Intranet netsoul.")
                 self.send_task_status({TaskType.NETSOUL: TaskStatus.ERROR})
@@ -225,6 +229,7 @@ class Student:
         except Exception as e:
             self.err_scrap(f"Failed to fetch Intranet netsoul: {str(e)}")
             self.send_task_status({TaskType.NETSOUL: TaskStatus.ERROR})
+            traceback.print_exc()
         self.send_task_status({TaskType.NETSOUL: TaskStatus.SUCCESS})
         self.save_scrape(TaskType.NETSOUL)
         return results
